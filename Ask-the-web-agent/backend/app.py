@@ -33,13 +33,14 @@ def web_search(query: str) -> str:
 
 # ----------------------------AGENT------------------------------------
 
-llm = ChatOllama(model="llama3", temperature=0)
+llm = ChatOllama(model="mistral", temperature=0)
 tools = [web_search]
 agent = initialize_agent(
     tools,
     llm,
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True,
+    handle_parsing_errors=True
 )
 # ----------------------------------FASTAPI------------------------------
 
