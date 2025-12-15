@@ -1,47 +1,25 @@
 # backend/app.py
+"""
+FastAPI backend for Ask-the-Web Agent
+Uses modular Python files from src/ directory
+"""
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from langchain_community.chat_models import ChatOllama
-from langchain.agents import initialize_agent, Tool, AgentType
-from ddgs import DDGS
-
-from langchain.tools import tool
-
-# ----------------------------TOOLS------------------------------------
-def search_web(query: str, max_results: int = 10) -> str:
-    """Return the top `max_results` web results for `query` as a single
-    formatted string. Uses DuckDuckGo's unofficial API."""
-    results = []
-    with DDGS() as ddgs:
-        for r in ddgs.text(query, max_results=max_results):
-            results.append(f"- {r['title']} — {r['href']}")
-    return "\n".join(results)
-
-
-@tool
-def web_search(query: str) -> str:
-    """Search the web for `query` and return concise results"""
-    return search_web(query)
-
-# Add other tools here (e.g., a dummy get_current_weather)
-# @tool
-# def get_current_weather(city: str, unit: str = "celsius") -> str:
-#     """Get the current weather for a city (unit may be celsius or fahrenheit)"""
-#     return f"It is 23°{unit[0].upper()} and sunny in {city}."
+# Import the web search agent from our modular structure
+from src.step5_web_search_agent import create_web_search_agent
 
 # ----------------------------AGENT------------------------------------
 
-llm = ChatOllama(model="mistral", temperature=0)
-tools = [web_search]
-agent = initialize_agent(
-    tools,
-    llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True,
-    handle_parsing_errors=True
-)
+# Create the web search agent using our modular code
+agent = create_web_search_agent(model="mistral", verbose=True)
 # ----------------------------------FASTAPI------------------------------
 
 app = FastAPI()
